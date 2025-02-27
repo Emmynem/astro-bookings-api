@@ -5,6 +5,7 @@ export const admin_domain: string = "https://admin.example.com";
 export const test_primary_domain: string = "https://jovial-tiramisu-a984ba.netlify.app";
 export const test_admin_domain: string = "https://sunny-pithivier-da6ed4.netlify.app";
 export const mailer_url: string = "https://api.mailer.xnyder.com";
+export const clouder_url: string = "https://api.clouder.xnyder.com";
 
 export const tag_root: string = "Root";
 export const anonymous: string = "Anonymous";
