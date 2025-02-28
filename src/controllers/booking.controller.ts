@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Op } from "sequelize";
 import { validationResult, matchedData } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
 import BOOKING, { IBooking } from "../models/booking.model";
 import USER, { IUser } from "../models/user.model";
 import { IGetAuthTypesRequest } from "../middleware/checks";
@@ -9,6 +10,11 @@ import { ServerError, SuccessResponse, ValidationError, OtherSuccessResponse, No
 import {
 	IPagination, ISearch, default_status, paginate, return_all_letters_uppercase, today_str_alt, random_uuid, completed, processing, anonymous
 } from '../config/config';
+import { deleteImage } from '../middleware/uploads';
+
+dotenv.config();
+
+const { clouder_key, cloudy_name, cloudy_key,   } = process.env;
 
 export default class BookingController {
 	async getBookings(req: IGetAuthTypesRequest, res: Response) {
@@ -237,7 +243,7 @@ export default class BookingController {
 			}
 			
 			if (payload.priority && !user_details.priority_fee) {
-				return BadRequestError(res, { unique_id: anonymous, text: "User Not found" }, null);
+				return BadRequestError(res, { unique_id: anonymous, text: "No priority fee available" }, null);
 			}
 
 			await BOOKING.sequelize?.transaction(async (transaction) => {
@@ -251,6 +257,10 @@ export default class BookingController {
 					priority_amount: payload.priority ? (!user_details.priority_fee ? null : user_details.priority_fee) : null,
 					total_amount: payload.priority && user_details.fee && user_details.priority_fee ? user_details.fee + user_details.priority_fee : user_details.fee,
 					details: payload.details ? payload.details : null,
+					proof_image: payload.proof_image ? payload.proof_image : null,
+					proof_image_public_id: payload.proof_image_public_id ? payload.proof_image_public_id : null,
+					topup_proof_image: payload.topup_proof_image ? payload.topup_proof_image : null,
+					topup_proof_image_public_id: payload.topup_proof_image_public_id ? payload.topup_proof_image_public_id : null,
 					booking_status: processing,
 					status: default_status
 				}, { transaction });
@@ -259,6 +269,54 @@ export default class BookingController {
 					return SuccessResponse(res, { unique_id: anonymous, text: "Booking added successfully!" }, { unique_id: bookingResponse.unique_id, amount: bookingResponse.amount, priority_amount: bookingResponse.priority_amount, total_amount: bookingResponse.total_amount, booking_status: bookingResponse.booking_status });
 				} else {
 					throw new Error("Error adding booking");
+				}
+			});
+		} catch (err: any) {
+			return ServerError(res, { unique_id: anonymous, text: err.message }, null);
+		}
+	}
+
+	async updateBookingTopupProof(req: IGetAuthTypesRequest, res: Response) {
+		const errors = validationResult(req);
+		const payload = matchedData(req);
+
+		if (!errors.isEmpty()) {
+			return ValidationError(res, { unique_id: anonymous, text: "Validation Error Occured" }, errors.array())
+		}
+
+		try {
+			const booking_details = await BOOKING.findOne({
+				attributes: { exclude: ['id'] },
+				where: { unique_id: payload.unique_id }
+			});
+
+			if (!booking_details) {
+				return BadRequestError(res, { unique_id: anonymous, text: "Booking Not found" }, null);
+			}
+
+			await BOOKING.sequelize?.transaction(async (transaction) => {
+				const response = await BOOKING.update(
+					{
+						topup_proof_image: payload.topup_proof_image ? payload.topup_proof_image : null,
+						topup_proof_image_public_id: payload.topup_proof_image_public_id ? payload.topup_proof_image_public_id : null,
+					}, {
+						where: {
+							unique_id: payload.unique_id,
+							status: default_status
+						},
+						transaction
+					}
+				);
+
+				if (response[0] > 0) {
+					SuccessResponse(res, { unique_id: anonymous, text: "Details updated successfully!" }, null);
+
+					// Delete former image available
+					if (booking_details.topup_proof_image_public_id !== null) {
+						await deleteImage(clouder_key, { cloudinary_name: cloudy_name, cloudinary_key: cloudy_key, cloudinary_secret:  , public_id: booking_details.topup_proof_image_public_id });
+					}
+				} else {
+					throw new Error("Error updating details");
 				}
 			});
 		} catch (err: any) {
@@ -312,6 +370,15 @@ export default class BookingController {
 		}
 
 		try {
+			const booking_details = await BOOKING.findOne({
+				attributes: { exclude: ['id'] },
+				where: { unique_id: payload.unique_id }
+			});
+
+			if (!booking_details) {
+				return BadRequestError(res, { unique_id: anonymous, text: "Booking Not found" }, null);
+			}
+
 			await BOOKING.sequelize?.transaction(async (transaction) => {
 				const response = await BOOKING.destroy(
 					{
@@ -323,7 +390,15 @@ export default class BookingController {
 				);
 
 				if (response > 0) {
-					return SuccessResponse(res, { unique_id: api_key, text: "Booking was deleted successfully!" }, null);
+					SuccessResponse(res, { unique_id: api_key, text: "Booking was deleted successfully!" }, null);
+
+					// Delete former image available
+					if (booking_details.proof_image_public_id !== null) {
+						await deleteImage(clouder_key, { cloudinary_name: cloudy_name, cloudinary_key: cloudy_key, cloudinary_secret: cloudy_secret, public_id: booking_details.proof_image_public_id });
+					}
+					if (booking_details.topup_proof_image_public_id !== null) {
+						await deleteImage(clouder_key, { cloudinary_name: cloudy_name, cloudinary_key: cloudy_key, cloudinary_secret: cloudy_secret, public_id: booking_details.topup_proof_image_public_id });
+					}
 				} else {
 					throw new Error("Error deleting record");
 				}
