@@ -68,9 +68,41 @@ export const BookingRules = {
 			.bail()
 			.isString().isLength({ min: 1, max: check_length_TEXT })
 			.withMessage("Invalid length (1 - check_length_TEXT) characters"),
+		check('proof_image', "Proof Image is required")
+			.exists({ checkNull: true })
+			.bail()
+			.isURL()
+			.withMessage("Value must be a specified url"),
+		check('proof_image_public_id', "Proof Image Public Id is required")
+			.exists({ checkNull: true })
+			.bail()
+			.isLength({ min: 2, max: 500 })
+			.withMessage(`Invalid length (2 - ${500}) characters`),
+		check('topup_proof_image')
+			.optional({ checkFalsy: false })
+			.bail()
+			.isURL()
+			.withMessage("Value must be a specified url"),
+		check('topup_proof_image_public_id')
+			.optional({ checkFalsy: false })
+			.bail()
+			.isLength({ min: 2, max: 500 })
+			.withMessage(`Invalid length (2 - ${500}) characters`),
 	], 
 	forFindingViaBookingStatus: [
 		check('booking_status', "Booking Status is required")
 			.exists({ checkNull: true, checkFalsy: true })
+	], 
+	forUpdatingTopupProof: [
+		check('topup_proof_image')
+			.optional({ checkFalsy: false })
+			.bail()
+			.isURL()
+			.withMessage("Value must be a specified url"),
+		check('topup_proof_image_public_id')
+			.optional({ checkFalsy: false })
+			.bail()
+			.isLength({ min: 2, max: 500 })
+			.withMessage(`Invalid length (2 - ${500}) characters`),
 	]
 }
