@@ -13,6 +13,10 @@ export interface IBooking {
 	priority_amount?: number;
 	total_amount: number;
 	details?: string;
+	proof_image?: string;
+	proof_image_public_id?: string;
+	topup_proof_image?: string;
+	topup_proof_image_public_id?: string;
 	booking_status?: string;
 	status?: number;
 }
@@ -97,6 +101,34 @@ export default class Booking extends Model {
 		field: "details"
 	})
 	details?: string;
+
+	@Column({
+		type: DataType.STRING(500),
+		allowNull: true,
+		field: "proof_image"
+	})
+	proof_image?: string;
+
+	@Column({
+		type: DataType.STRING(500),
+		allowNull: true,
+		field: "proof_image_public_id"
+	})
+	proof_image_public_id?: string;
+
+	@Column({
+		type: DataType.STRING(500),
+		allowNull: true,
+		field: "topup_proof_image"
+	})
+	topup_proof_image?: string;
+
+	@Column({
+		type: DataType.STRING(500),
+		allowNull: true,
+		field: "topup_proof_image_public_id"
+	})
+	topup_proof_image_public_id?: string;
 
 	@Column({
 		type: DataType.STRING(50),
