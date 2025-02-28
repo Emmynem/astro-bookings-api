@@ -24,6 +24,7 @@ class BookingRoutes {
 
 		this.router.post("/add/booking", [UserRules.forFindingUserAlt, BookingRules.forAdding as any], this.controller.addBooking as any);
 		
+		this.router.put("/update/topup/proof", [BookingRules.forFindingBooking, BookingRules.forUpdatingTopupProof as any], this.controller.updateBookingTopupProof as any);
 		this.router.put("/root/update/booking/status", [checks.verifyKey as any, BookingRules.forFindingBooking, BookingRules.forFindingViaBookingStatus], this.controller.updateBookingStatus as any);
 
 		this.router.delete("/root/booking", [checks.verifyKey as any, BookingRules.forFindingBooking], this.controller.deleteBooking as any);
