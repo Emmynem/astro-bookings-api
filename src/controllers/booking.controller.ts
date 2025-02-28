@@ -14,7 +14,7 @@ import { deleteImage } from '../middleware/uploads';
 
 dotenv.config();
 
-const { clouder_key, cloudy_name, cloudy_key,   } = process.env;
+const { clouder_key, cloudy_name, cloudy_key, cloudy_secret } = process.env;
 
 export default class BookingController {
 	async getBookings(req: IGetAuthTypesRequest, res: Response) {
@@ -313,7 +313,7 @@ export default class BookingController {
 
 					// Delete former image available
 					if (booking_details.topup_proof_image_public_id !== null) {
-						await deleteImage(clouder_key, { cloudinary_name: cloudy_name, cloudinary_key: cloudy_key, cloudinary_secret:  , public_id: booking_details.topup_proof_image_public_id });
+						await deleteImage(clouder_key, { cloudinary_name: cloudy_name, cloudinary_key: cloudy_key, cloudinary_secret: cloudy_secret, public_id: booking_details.topup_proof_image_public_id });
 					}
 				} else {
 					throw new Error("Error updating details");
