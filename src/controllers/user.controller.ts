@@ -2,12 +2,18 @@ import { Request, Response } from "express";
 import { Op } from "sequelize";
 import { validationResult, matchedData } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
+import dotenv from 'dotenv';
 import USER, { IUser } from "../models/user.model";
 import { IGetAuthTypesRequest } from "../middleware/checks";
 import { ServerError, SuccessResponse, ValidationError, OtherSuccessResponse, NotFoundError, BadRequestError, logger } from '../common/index';
 import {
 	IPagination, ISearch, default_status, mailer_url, paginate, return_all_letters_uppercase, random_uuid, anonymous
 } from '../config/config';
+import { deleteImage } from '../middleware/uploads';
+
+dotenv.config();
+
+const { clouder_key, cloudy_name, cloudy_key, cloudy_secret } = process.env;
 
 export default class UserController {
 	async getUsers(req: IGetAuthTypesRequest, res: Response) {
@@ -301,6 +307,15 @@ export default class UserController {
 		} 
 
 		try {
+			const user_details = await USER.findOne({
+				attributes: { exclude: ['id'] },
+				where: { unique_id: payload.unique_id }
+			});
+
+			if (!user_details) {
+				return BadRequestError(res, { unique_id: api_key, text: "User Not found" }, null);
+			}
+
 			await USER.sequelize?.transaction(async (transaction) => {
 				const response = await USER.update(
 					{
@@ -316,7 +331,12 @@ export default class UserController {
 				);
 
 				if (response[0] > 0) {
-					return SuccessResponse(res, { unique_id: api_key, text: "Details updated successfully!" }, null);
+					SuccessResponse(res, { unique_id: api_key, text: "Details updated successfully!" }, null);
+					
+					// Delete former image available
+					if (user_details.profile_image_public_id !== null) {
+						await deleteImage(clouder_key, { cloudinary_name: cloudy_name, cloudinary_key: cloudy_key, cloudinary_secret: cloudy_secret, public_id: user_details.profile_image_public_id });
+					}
 				} else {
 					throw new Error("Error updating details");
 				}
@@ -337,6 +357,15 @@ export default class UserController {
 		}
 
 		try {
+			const user_details = await USER.findOne({
+				attributes: { exclude: ['id'] },
+				where: { unique_id: payload.unique_id }
+			});
+
+			if (!user_details) {
+				return BadRequestError(res, { unique_id: api_key, text: "User Not found" }, null);
+			}
+			
 			await USER.sequelize?.transaction(async (transaction) => {
 				const response = await USER.destroy(
 					{
@@ -348,7 +377,12 @@ export default class UserController {
 				);
 
 				if (response > 0) {
-					return SuccessResponse(res, { unique_id: api_key, text: "User was deleted successfully!" }, null);
+					SuccessResponse(res, { unique_id: api_key, text: "User was deleted successfully!" }, null);
+
+					// Delete former image available
+					if (user_details.profile_image_public_id !== null) {
+						await deleteImage(clouder_key, { cloudinary_name: cloudy_name, cloudinary_key: cloudy_key, cloudinary_secret: cloudy_secret, public_id: user_details.profile_image_public_id });
+					}
 				} else {
 					throw new Error("Error deleting record");
 				}
