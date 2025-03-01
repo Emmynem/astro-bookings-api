@@ -58,11 +58,11 @@ export const BookingRules = {
 			.bail()
 			.isMobilePhone("any")
 			.withMessage('Invalid phone number'),
-		check('priority', "Priority is required")
-			.exists({ checkNull: true })
-			.bail()
-			.isBoolean()
-			.withMessage("Value should be true or false"),
+		// check('priority', "Priority is required")
+		// 	.exists({ checkNull: true })
+		// 	.bail()
+		// 	.isBoolean()
+		// 	.withMessage("Value should be true or false"),
 		check('details')
 			.optional({ checkFalsy: false })
 			.bail()
