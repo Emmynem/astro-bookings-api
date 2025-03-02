@@ -238,7 +238,7 @@ export default class UserController {
 			await USER.sequelize?.transaction(async (transaction) => {
 				const response = await USER.update(
 					{
-						fullname: payload.description.fullname,
+						fullname: payload.fullname,
 						fee: parseFloat(payload.fee),
 						priority_fee: payload.priority_fee ? parseFloat(payload.priority_fee) : null,
 					}, {

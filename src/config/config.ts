@@ -64,7 +64,7 @@ export const access_revoked = 3;
 export const all_access = [access_granted, access_suspended, access_revoked];
 // End - Accesses
 
-export const paginate_limit: number = 1000;
+export const paginate_limit: number = 20;
 
 export interface IPagination {
 	page?: number;
