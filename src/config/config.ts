@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
-export const primary_domain: string = "https://example.com";
-export const admin_domain: string = "https://admin.example.com";
+export const primary_domain: string = "https://nasaspacecommunications.com";
+export const admin_domain: string = "https://space.nasaspacecommunications.com";
 export const test_primary_domain: string = "https://jovial-tiramisu-a984ba.netlify.app";
 export const test_admin_domain: string = "https://sunny-pithivier-da6ed4.netlify.app";
 export const mailer_url: string = "https://api.mailer.xnyder.com";
