@@ -1,7 +1,26 @@
 import { v4 as uuidv4 } from 'uuid';
 import { logger } from '../common/index';
+import APP_DEFAULT, { IAppDefault } from "../models/appDefault.model";
 import API_KEY, { IApiKey } from "../models/apiKey.model";
-import { default_status, random_uuid } from '../config/config';
+import { default_app_values, default_status, random_uuid } from '../config/config';
+
+export async function createAppDefaults() {
+
+	const count = await APP_DEFAULT.count();
+
+	if (count <= 0) {
+		try {
+			await APP_DEFAULT.sequelize?.transaction((t) => {
+				const appDefaults = APP_DEFAULT.bulkCreate(default_app_values, { transaction: t });
+				return appDefaults;
+			})
+			logger.info('Added app defaults');
+		} catch (error) {
+			logger.error(error)
+			logger.error('Error adding app defaults');
+		}
+	}
+};
 
 export async function createApiKeys() {
 
