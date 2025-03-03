@@ -21,9 +21,9 @@ class AppDefaultRoutes {
 		this.router.get("/search/app/defaults", [DefaultRules.forSearching as any], this.controller.publicSearchAppDefaults as any);
 		this.router.get("/app/default", [AppDefaultRules.forFindingAppDefault as any], this.controller.publicGetAppDefault as any);
 
-		this.router.post("/root/create/app/default", [checks.verifyKey as any, AppDefaultRules.forAddingAndUpdating], this.controller.addAppDefault as any);
+		this.router.post("/root/app/default/add", [checks.verifyKey as any, AppDefaultRules.forAddingAndUpdating], this.controller.addAppDefault as any);
 
-		this.router.put("/root/update/app/default/details", [checks.verifyKey as any, AppDefaultRules.forFindingAppDefault, AppDefaultRules.forAddingAndUpdating], this.controller.updateAppDefaultDetails as any);
+		this.router.put("/root/app/default/edit", [checks.verifyKey as any, AppDefaultRules.forFindingAppDefault, AppDefaultRules.forAddingAndUpdating], this.controller.updateAppDefaultDetails as any);
 
 		this.router.delete("/root/app/default", [checks.verifyKey as any, AppDefaultRules.forFindingAppDefault], this.controller.deleteAppDefault as any);
 	}
