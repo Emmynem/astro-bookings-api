@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 
 export const primary_domain: string = "https://nasaspacecommunications.com";
 export const admin_domain: string = "https://space.nasaspacecommunications.com";
@@ -64,6 +65,72 @@ export const access_revoked = 3;
 export const all_access = [access_granted, access_suspended, access_revoked];
 // End - Accesses
 
+// App Defaults 
+export const app_defaults = {
+	api_whitelist: "Api_Whitelist",
+	bnb_wallet_address: "Bnb_Wallet_Address",
+	btc_wallet_address: "Btc_Wallet_Address",
+	eth_wallet_address: "Eth_Wallet_Address",
+	sol_wallet_address: "Sol_Wallet_Address",
+	tron_wallet_address: "Tron_Wallet_Address",
+	maintenance: "Maintenance"
+};
+
+export const default_app_values: Array<{}> = [
+	{
+		unique_id: uuidv4(),
+		criteria: "Maintenance",
+		data_type: "BOOLEAN",
+		value: false,
+		status: 1
+	},
+	{
+		unique_id: uuidv4(),
+		criteria: "Api_Whitelist",
+		data_type: "ARRAY",
+		value: null,
+		status: 1
+	},
+
+	{
+		unique_id: uuidv4(),
+		criteria: "Bnb_Wallet_Address",
+		data_type: "STRING",
+		value: null,
+		status: 1
+	},
+	{
+		unique_id: uuidv4(),
+		criteria: "Btc_Wallet_Address",
+		data_type: "STRING",
+		value: null,
+		status: 1
+	},
+	{
+		unique_id: uuidv4(),
+		criteria: "Eth_Wallet_Address",
+		data_type: "STRING",
+		value: null,
+		status: 1
+	},
+	{
+		unique_id: uuidv4(),
+		criteria: "Sol_Wallet_Address",
+		data_type: "STRING",
+		value: null,
+		status: 1
+	},
+	{
+		unique_id: uuidv4(),
+		criteria: "Tron_Wallet_Address",
+		data_type: "STRING",
+		value: null,
+		status: 1
+	},
+];
+// End - App Defaults
+
+export const app_defaults_data_type: Array<string> = ['STRING', 'INTEGER', 'BIGINT', 'BOOLEAN'];
 export const paginate_limit: number = 20;
 
 export interface IPagination {
@@ -224,6 +291,13 @@ export const strip_text_underscore = (text: string) => {
 	return string;
 };
 
+export const convert_app_default_name = (text: string) => {
+	let first_convert = return_first_letter_uppercase(unstrip_text(text));
+	let second_convert = strip_text_underscore(first_convert);
+
+	return second_convert;
+};
+
 export const return_first_letter_uppercase = (str: any) => {
 	return str.toLowerCase().replace(/(^\w{1})|(\s+\w{1})/g, (letter: string) => letter.toUpperCase());
 };
@@ -303,6 +377,21 @@ export const validate_transaction_types = (obj: any) => {
 		method !== transaction_types.reversal
 	) return false;
 	return true;
+};
+
+export const validate_app_default_type = (app_default: string) => {
+	if (!app_defaults_data_type.includes(app_default)) return false;
+	return true;
+};
+
+export const validate_app_default_value = (value: any, data_type: string) => {
+	if (data_type === "BOOLEAN" && typeof value === "boolean") return true
+	else if (data_type === "STRING" && typeof value === "string") return true
+	else if (data_type === "INTEGER" && typeof value === "number") return true
+	else if (data_type === "BIGINT" && typeof value === "bigint") return true
+	else if (data_type === "ARRAY" && Array.isArray(value) && value.length !== 0) return true
+	else if (data_type === "MAP" && typeof value === "object") return true
+	else return false
 };
 
 export const paginate = (page: number, _records: number, total_records: number) => {
