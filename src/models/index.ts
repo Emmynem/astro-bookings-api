@@ -1,5 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 import { config, dialect, dialectOptions, timezone } from "../config/db.config";
+import AppDefault from "./appDefault.model";
 import ApiKey from "./apiKey.model";
 import User from "./user.model";
 import Booking from "./booking.model";
@@ -33,7 +34,7 @@ class Database {
 				typeCast: dialectOptions.typeCast
 			},
 			timezone: timezone,
-			models: [ApiKey, User, Booking]
+			models: [ApiKey, AppDefault, User, Booking]
 		});
 
 		await this.sequelize
