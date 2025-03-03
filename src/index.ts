@@ -3,7 +3,7 @@ import cors, { CorsOptions } from "cors";
 import helmet from "helmet";
 import rateLimit from 'express-rate-limit';
 import morganMiddleware from "./middleware/morgan";
-import { createApiKeys } from "./config/default.config";
+import { createApiKeys, createAppDefaults } from "./config/default.config";
 import { astrobookings_header_key, primary_domain, test_primary_domain, admin_domain, test_admin_domain } from './config/config';
 import Routes from "./routes";
 import Database from "./models";
@@ -67,6 +67,7 @@ export default class Server {
 		db.sequelize?.sync({ alter: false }).then(() => {
 			// creating defaults
 			createApiKeys();
+			createAppDefaults();
 		});
 	}
 }
