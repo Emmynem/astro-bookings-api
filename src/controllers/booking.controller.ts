@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import axios from 'axios';
 import { Op } from "sequelize";
 import { validationResult, matchedData } from 'express-validator';
 import { v4 as uuidv4 } from 'uuid';
@@ -8,13 +9,15 @@ import USER, { IUser } from "../models/user.model";
 import { IGetAuthTypesRequest } from "../middleware/checks";
 import { ServerError, SuccessResponse, ValidationError, OtherSuccessResponse, NotFoundError, BadRequestError, logger } from '../common/index';
 import {
-	IPagination, ISearch, default_status, paginate, return_all_letters_uppercase, today_str_alt, random_uuid, completed, processing, anonymous
+	IPagination, ISearch, default_status, paginate, return_all_letters_uppercase, today_str_alt, random_uuid, completed, processing, anonymous, mailer_url,
+	return_all_letters_lowercase
 } from '../config/config';
 import { deleteImage } from '../middleware/uploads';
+import { booking_confirmation } from "../config/template";
 
 dotenv.config();
 
-const { clouder_key, cloudy_name, cloudy_key, cloudy_secret } = process.env;
+const { clouder_key, cloudy_name, cloudy_key, cloudy_secret, cloud_mailer_key, host_type, smtp_host, cloud_mailer_username, cloud_mailer_password, from_email } = process.env;
 
 export default class BookingController {
 	async getBookings(req: IGetAuthTypesRequest, res: Response) {
@@ -246,33 +249,70 @@ export default class BookingController {
 				return BadRequestError(res, { unique_id: anonymous, text: "No priority fee available" }, null);
 			}
 
-			await BOOKING.sequelize?.transaction(async (transaction) => {
-				const bookingResponse = await BOOKING.create({
-					unique_id: uuidv4(),
-					user_unique_id: payload.user_unique_id,
-					fullname: payload.fullname,
-					email: payload.email,
-					phone_number: payload.phone_number ? payload.phone_number : null,
-					amount: user_details.fee,
-					// priority_amount: payload.priority ? (!user_details.priority_fee ? null : user_details.priority_fee) : null,
-					priority_amount: null,
-					// total_amount: payload.priority && user_details.fee && user_details.priority_fee ? user_details.fee + user_details.priority_fee : user_details.fee,
-					total_amount: user_details.fee,
-					details: payload.details ? payload.details : null,
-					proof_image: payload.proof_image ? payload.proof_image : null,
-					proof_image_public_id: payload.proof_image_public_id ? payload.proof_image_public_id : null,
-					topup_proof_image: payload.topup_proof_image ? payload.topup_proof_image : null,
-					topup_proof_image_public_id: payload.topup_proof_image_public_id ? payload.topup_proof_image_public_id : null,
-					booking_status: processing,
-					status: default_status
-				}, { transaction });
+			const mail_data = {
+				to: payload.email,
+				astronaut: user_details.fullname,
+				fullname: payload.fullname,
+				total_amount: user_details.fee ? user_details.fee.toLocaleString() : user_details.fee
+			};
 
-				if (bookingResponse) {
-					return SuccessResponse(res, { unique_id: anonymous, text: "Booking added successfully!" }, { unique_id: bookingResponse.unique_id, amount: bookingResponse.amount, priority_amount: bookingResponse.priority_amount, total_amount: bookingResponse.total_amount, booking_status: bookingResponse.booking_status });
-				} else {
-					throw new Error("Error adding booking");
+			const { email_html, email_subject, email_text } = booking_confirmation(mail_data);
+
+			const mailer_response = await axios.post(
+				`${mailer_url}/send`,
+				{
+					host_type: host_type,
+					smtp_host: smtp_host,
+					username: cloud_mailer_username,
+					password: cloud_mailer_password,
+					from_email: from_email,
+					to_email: return_all_letters_lowercase(mail_data.to),
+					subject: email_subject,
+					text: email_text,
+					html: email_html
+				},
+				{
+					headers: {
+						'mailer-access-key': cloud_mailer_key
+					}
 				}
-			});
+			);
+
+			if (mailer_response.data.success) {
+				if (mailer_response.data.data === null) {
+					BadRequestError(res, { unique_id: anonymous, text: "Unable to send email to user" }, null);
+				} else {
+					await BOOKING.sequelize?.transaction(async (transaction) => {
+						const bookingResponse = await BOOKING.create({
+							unique_id: uuidv4(),
+							user_unique_id: payload.user_unique_id,
+							fullname: payload.fullname,
+							email: payload.email,
+							phone_number: payload.phone_number ? payload.phone_number : null,
+							amount: user_details.fee,
+							// priority_amount: payload.priority ? (!user_details.priority_fee ? null : user_details.priority_fee) : null,
+							priority_amount: null,
+							// total_amount: payload.priority && user_details.fee && user_details.priority_fee ? user_details.fee + user_details.priority_fee : user_details.fee,
+							total_amount: user_details.fee,
+							details: payload.details ? payload.details : null,
+							proof_image: payload.proof_image ? payload.proof_image : null,
+							proof_image_public_id: payload.proof_image_public_id ? payload.proof_image_public_id : null,
+							topup_proof_image: payload.topup_proof_image ? payload.topup_proof_image : null,
+							topup_proof_image_public_id: payload.topup_proof_image_public_id ? payload.topup_proof_image_public_id : null,
+							booking_status: processing,
+							status: default_status
+						}, { transaction });
+
+						if (bookingResponse) {
+							return SuccessResponse(res, { unique_id: anonymous, text: "Booking added successfully!" }, { unique_id: bookingResponse.unique_id, amount: bookingResponse.amount, priority_amount: bookingResponse.priority_amount, total_amount: bookingResponse.total_amount, booking_status: bookingResponse.booking_status });
+						} else {
+							throw new Error("Error adding booking");
+						}
+					});
+				}
+			} else {
+				BadRequestError(res, { unique_id: anonymous, text: mailer_response.data.message }, null);
+			}
 		} catch (err: any) {
 			return ServerError(res, { unique_id: anonymous, text: err.message }, null);
 		}
