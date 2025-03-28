@@ -223,16 +223,18 @@ export default class AppDefaultController {
 	}
 
 	async addAppDefault(req: IGetAuthTypesRequest, res: Response) {
+		const api_key: string = req.API_KEY;
+		
 		const errors = validationResult(req);
 		const payload = matchedData(req);
 
 		if (!errors.isEmpty()) {
-			return ValidationError(res, { unique_id: anonymous, text: "Validation Error Occured" }, errors.array());
+			return ValidationError(res, { unique_id: api_key, text: "Validation Error Occured" }, errors.array());
 		}
 
 		try {
 			await APP_DEFAULT.sequelize?.transaction(async (transaction) => {
-				const bookingResponse = await APP_DEFAULT.create({
+				const appDefaultResponse = await APP_DEFAULT.create({
 					unique_id: uuidv4(),
 					criteria: convert_app_default_name(payload.criteria),
 					data_type: payload.data_type,
@@ -242,14 +244,14 @@ export default class AppDefaultController {
 					status: default_status
 				}, { transaction });
 
-				if (bookingResponse) {
-					return SuccessResponse(res, { unique_id: anonymous, text: "App Default added successfully!" }, null);
+				if (appDefaultResponse) {
+					return SuccessResponse(res, { unique_id: api_key, text: "App Default added successfully!" }, null);
 				} else {
-					throw new Error("Error adding booking");
+					throw new Error("Error adding app default");
 				}
 			});
 		} catch (err: any) {
-			return ServerError(res, { unique_id: anonymous, text: err.message }, null);
+			return ServerError(res, { unique_id: api_key, text: err.message }, null);
 		}
 	}
 
