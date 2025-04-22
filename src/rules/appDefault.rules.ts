@@ -10,7 +10,7 @@ export const AppDefaultRules = {
 		check('unique_id', "Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (unique_id: string, { req: Request }) => {
+			.custom(async (unique_id: string, { req }) => {
 				const data = await APP_DEFAULT.findOne({ where: { unique_id: unique_id, status: default_status } });
 				if (!data) return Promise.reject('App Default not found!');
 			})

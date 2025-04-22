@@ -10,7 +10,7 @@ export const BookingRules = {
 		check('unique_id', "Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (unique_id: string, { req: Request }) => {
+			.custom(async (unique_id: string, { req }) => {
 				const data = await BOOKING.findOne({ where: { unique_id: unique_id } });
 				if (!data) return Promise.reject('Booking not found!');
 			})
@@ -19,7 +19,7 @@ export const BookingRules = {
 		check('unique_id', "Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (unique_id: string, { req: Request }) => {
+			.custom(async (unique_id: string, { req }) => {
 				const data = await BOOKING.findOne({ where: { unique_id: unique_id, status: default_status } });
 				if (!data) return Promise.reject('Booking not found!');
 			})
@@ -28,7 +28,7 @@ export const BookingRules = {
 		check('unique_id', "Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (unique_id: string, { req: Request }) => {
+			.custom(async (unique_id: string, { req }) => {
 				const data = await BOOKING.findOne({ where: { unique_id: unique_id, status: default_delete_status } });
 				if (!data) return Promise.reject('Booking not found!');
 			})
@@ -37,7 +37,7 @@ export const BookingRules = {
 		check('booking_unique_id', "Booking Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (booking_unique_id: string, { req: Request }) => {
+			.custom(async (booking_unique_id: string, { req }) => {
 				const data = await BOOKING.findOne({ where: { unique_id: booking_unique_id, status: default_status } });
 				if (!data) return Promise.reject('Booking not found!');
 			})

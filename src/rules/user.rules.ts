@@ -10,7 +10,7 @@ export const UserRules = {
 		check('unique_id', "Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (unique_id: string, { req: Request }) => {
+			.custom(async (unique_id: string, { req }) => {
 				const data = await USER.findOne({ where: { unique_id: unique_id } });
 				if (!data) return Promise.reject('User not found!');
 			})
@@ -19,7 +19,7 @@ export const UserRules = {
 		check('unique_id', "Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (unique_id: string, { req: Request }) => {
+			.custom(async (unique_id: string, { req }) => {
 				const data = await USER.findOne({ where: { unique_id: unique_id, status: default_status } });
 				if (!data) return Promise.reject('User not found!');
 			})
@@ -28,7 +28,7 @@ export const UserRules = {
 		check('unique_id', "Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (unique_id: string, { req: Request }) => {
+			.custom(async (unique_id: string, { req }) => {
 				const data = await USER.findOne({ where: { unique_id: unique_id, status: default_delete_status } });
 				if (!data) return Promise.reject('User not found!');
 			})
@@ -37,7 +37,7 @@ export const UserRules = {
 		check('user_unique_id', "User Unique Id is required")
 			.exists({ checkNull: true, checkFalsy: true })
 			.bail()
-			.custom(async (user_unique_id: string, { req: Request }) => {
+			.custom(async (user_unique_id: string, { req }) => {
 				const data = await USER.findOne({ where: { unique_id: user_unique_id, status: default_status } });
 				if (!data) return Promise.reject('User not found!');
 			})
