@@ -24,7 +24,7 @@ export default class Server {
 	}
 
 	private config(app: Application): void {
-		const appWhitelist = [primary_domain, admin_domain, test_primary_domain, test_admin_domain, "http://localhost", "http://localhost:80", "http://localhost:3000", "http://localhost:5173"];
+		const appWhitelist = [primary_domain, admin_domain, test_primary_domain, test_admin_domain, "http://localhost", "http://localhost:80", "http://localhost:3000", "http://localhost:5173", "https://globalspacecommunications.com", "https://space.globalspacecommunications.com"];
 
 		const corsOptions: CorsOptions = {
 			allowedHeaders: [
